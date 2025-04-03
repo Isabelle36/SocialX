@@ -1,1 +1,1 @@
-Maybe i lost my mind
+Maybe.. i.... lost my mind
