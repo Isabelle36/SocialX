@@ -1,9 +1,10 @@
-import React from 'react'
+import Connecting from '@/MyComponents/Connecting'
+
 
 const page = () => {
   return (
     <div>
-      <h1 className='text-3xl text-white font-bold'>No one told me</h1>
+      <Connecting/>
   
     </div>
   )
