@@ -3,7 +3,7 @@ import Connecting from '@/MyComponents/Connecting'
 
 const page = () => {
   return (
-    <div>
+    <div >
       <Connecting/>
   
     </div>
