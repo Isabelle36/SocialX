@@ -4,7 +4,7 @@ export async function GET(request) {
   const token = searchParams.get('hub.verify_token');
   const challenge = searchParams.get('hub.challenge');
 
-  const VERIFY_TOKEN = process.env.INSTAGRAM_VERIFY_TOKEN;;
+  const VERIFY_TOKEN = process.env.INSTAGRAM_VERIFY_TOKEN;
 
   if (mode && token) {
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
