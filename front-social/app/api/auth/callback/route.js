@@ -1,3 +1,4 @@
+
 export async function GET(req) {
     try {
       const { searchParams } = new URL(req.url);
@@ -22,6 +23,7 @@ export async function GET(req) {
       }
   
       const tokenData = await tokenResponse.json();
+      
       const redirectUrl = `${redirect_uri}?accessToken=${tokenData.access_token}`;
       return new Response(null, {
         status: 302,
