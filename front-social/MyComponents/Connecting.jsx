@@ -5,26 +5,66 @@ import { Button } from "@/components/ui/button";
 
 const Connecting = () => {
   const [accounts, setAccounts] = useState([]);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleInstagramLogin = () => {
     window.location.href = "/api/auth/facebook";
   };
 
   const handleDisconnect = (userInstaId) => {
-    console.log(`Disconnecting user with ID: ${userInstaId}`);
+    fetch("/api/logout",{
+      method:"DELETE",
+      credentials:"include",
+      headers:{
+        "content-type":"application/json",
+      },
+      body:JSON.stringify({userInstaId}),
+    }).then((res)=>{
+      if(res.ok){
+        setAccounts((prev)=> prev.filter((account)=>account.userInstaId!== userInstaId));
+        window.location.href="/";
+      }
+      else{
+        throw new Error("Failed to disconnect the account.");
+      }
+    })
+    .catch((err)=>{
+      console.log("Error during disconnecting account:",err);
+    });
   };
 
   useEffect(() => {
+    const checkLogin = async ()=>{
+    const res = await fetch("/api/auth/checking-login",{
+      credentials:"include",
+    });
+
+    console.log("Checking login response:",res.status);
+    if(res.status===401)
+      {
+        console.log("User not authenticated");
+        return;
+      }
+    
+    
+    if(!res.ok){
+     throw new Error("Internal server error");
+    }
+
+    
+    setLoading(true); // Set loading to true before fetching
     fetch("/api/getting_saved_accounts", {
-      credentials: "include", // Include cookies in the request
+      credentials: "include",
+      headers:{
+        "content-type":"application/json",
+      },
     })
       .then((res) => {
         if (!res.ok) {
           if (res.status === 401) {
             // Handle token expiration
             return fetch("/api/refresh_token", {
-              credentials: "include", 
+              credentials: "include", // Include cookies in the request
             })
               .then((refreshRes) => {
                 if (!refreshRes.ok) {
@@ -50,8 +90,8 @@ const Connecting = () => {
         return res.json();
       })
       .then((data) => {
-        if (data.error) {
-          setError(data.error);
+        if (!data || data.error) {
+          setError(data?.error || "No accounts found.");
         } else {
           setAccounts(data);
         }
@@ -59,8 +99,14 @@ const Connecting = () => {
       .catch((err) => {
         console.error("Error fetching accounts:", err);
         setError(err.message || "Failed to load accounts. Please try again.");
+      })
+      .finally(() => {
+        setLoading(false); // Set loading to false after fetching
       });
+    };
+    checkLogin();
   }, []);
+
 
   return (
     <div className="bg-black h-screen p-6 text-white">
@@ -75,7 +121,9 @@ const Connecting = () => {
       >
         + Add account
       </Button>
-      {error && <p className="text-red-500">{error}</p>}
+      {!loading && accounts.length===0 && <p>Add an account first in order to schedule posts</p>}
+      {loading && <p className="text-white">Loading the accounts please be patient...</p>}
+      {!loading && accounts.length>0 &&( 
       <div className="space-y-4">
         {accounts.map((account) => (
           <div
@@ -90,11 +138,10 @@ const Connecting = () => {
               />
               <div>
                 <p className="text-lg font-medium">{account.username}</p>
-                <p className="text-sm text-gray-400">{account.pageName}</p>
               </div>
             </div>
             <Button
-              className="bg-red-600/90 cursor-pointer hover:bg-red-600/100 text-white"
+              className="text-white bg-red-500/93 hover:bg-red-500 cursor-pointer"
               onClick={() => handleDisconnect(account.userInstaId)}
             >
               Disconnect
@@ -102,6 +149,7 @@ const Connecting = () => {
           </div>
         ))}
       </div>
+    )}
     </div>
   );
 };
