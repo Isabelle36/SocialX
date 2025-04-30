@@ -1,10 +1,9 @@
-import Connecting from '@/MyComponents/Connecting'
-
+import Connecting from "./accounts/page"
 
 const page = () => {
   return (
-    <div >
-      <Connecting/>
+    <div className="h-full flex flex-col">
+    <Connecting/>
     </div>
   )
 }

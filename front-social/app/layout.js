@@ -1,5 +1,7 @@
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { SidebarTrigger, SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/ui/AppSidebar";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,7 +29,14 @@ export default function RootLayout({ children }) {
       <body
         className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+       <SidebarProvider>
+      <AppSidebar />
+     
+        {/* <SidebarTrigger /> */}
+        <main>
         {children}
+        </main>
+     </SidebarProvider>
       </body>
     </html>
   );
