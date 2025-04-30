@@ -12,97 +12,101 @@ const Connecting = () => {
   };
 
   const handleDisconnect = (userInstaId) => {
-    fetch("/api/logout",{
-      method:"DELETE",
-      credentials:"include",
-      headers:{
-        "content-type":"application/json",
+    fetch("/api/logout", {
+      method: "DELETE",
+      credentials: "include",
+      headers: {
+        "content-type": "application/json",
       },
-      body:JSON.stringify({userInstaId}),
-    }).then((res)=>{
-      if(res.ok){
-        setAccounts((prev)=> prev.filter((account)=>account.userInstaId!== userInstaId));
-        window.location.href="/";
+      body: JSON.stringify({ userInstaId }),
+    }).then((res) => {
+      if (res.ok) {
+        setAccounts((prev) => prev.filter((account) => account.userInstaId !== userInstaId));
+        window.location.href = "/";
       }
-      else{
+      else {
         throw new Error("Failed to disconnect the account.");
       }
     })
-    .catch((err)=>{
-      console.log("Error during disconnecting account:",err);
-    });
+      .catch((err) => {
+        console.log("Error during disconnecting account:", err);
+      });
   };
 
   useEffect(() => {
-    const checkLogin = async ()=>{
-    const res = await fetch("/api/auth/checking-login",{
-      credentials:"include",
-    });
+    const checkLogin = async () => {
+      const res = await fetch("/api/auth/checking-login", {
+        credentials: "include",
+      });
 
-    console.log("Checking login response:",res.status);
-    if(res.status===401)
-      {
+      console.log("Checking login response:", res.status);
+      if (res.status === 401) {
         console.log("User not authenticated");
         return;
       }
-    
-    
-    if(!res.ok){
-     throw new Error("Internal server error");
-    }
 
-    
-    setLoading(true); // Set loading to true before fetching
-    fetch("/api/getting_saved_accounts", {
-      credentials: "include",
-      headers:{
-        "content-type":"application/json",
-      },
-    })
-      .then((res) => {
-        if (!res.ok) {
-          if (res.status === 401) {
-            // Handle token expiration
-            return fetch("/api/refresh_token", {
-              credentials: "include", // Include cookies in the request
-            })
-              .then((refreshRes) => {
-                if (!refreshRes.ok) {
-                  throw new Error("Session expired. Please log in again.");
-                }
-                return refreshRes.json();
+      if (!res.ok) {
+        throw new Error("Internal server error");
+      }
+
+
+      setLoading(true); // Set loading to true before fetching
+      fetch("/api/getting_saved_accounts", {
+        credentials: "include",
+        headers: {
+          "content-type": "application/json",
+        },
+      })
+        .then((res) => {
+          if (!res.ok) {
+            if (res.status === 401) {
+              // Handle token expiration
+              return fetch("/api/refresh_token", {
+                credentials: "include",
+                headers: {
+                  "content-type": "application/json",
+                },
               })
-              .then(() => {
-                // Retry fetching accounts after refreshing the token
-                return fetch("/api/getting_saved_accounts", {
-                  credentials: "include",
+                .then((refreshRes) => {
+                  if (!refreshRes.ok) {
+                    throw new Error("Session expired. Please log in again.");
+                  }
+                  return refreshRes.json();
+                })
+                .then(() => {
+                  // Retry fetching accounts after refreshing the token
+                  return fetch("/api/getting_saved_accounts", {
+                    credentials: "include",
+                    headers: {
+                      "content-type": "application/json",
+                    },
+                  });
+                })
+                .then((retryRes) => {
+                  if (!retryRes.ok) {
+                    throw new Error("Failed to fetch accounts after refreshing token.");
+                  }
+                  return retryRes.json();
                 });
-              })
-              .then((retryRes) => {
-                if (!retryRes.ok) {
-                  throw new Error("Failed to fetch accounts after refreshing token.");
-                }
-                return retryRes.json();
-              });
+            }
+            throw new Error("Failed to authenticate.");
           }
-          throw new Error("Failed to authenticate.");
-        }
-        return res.json();
-      })
-      .then((data) => {
-        if (!data || data.error) {
-          setError(data?.error || "No accounts found.");
-        } else {
-          setAccounts(data);
-        }
-      })
-      .catch((err) => {
-        console.error("Error fetching accounts:", err);
-        setError(err.message || "Failed to load accounts. Please try again.");
-      })
-      .finally(() => {
-        setLoading(false); // Set loading to false after fetching
-      });
+          return res.json();
+        })
+        .then((data) => {
+          if (!data || data.error) {
+            setError(data?.error || "No accounts found.");
+          } else {
+            setAccounts(data);
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching accounts:", err);
+          setError(err.message || "Failed to load accounts. Please try again.");
+        })
+        .finally(() => {
+          setLoading(false); // Set loading to false after fetching
+        });
     };
     checkLogin();
   }, []);
@@ -121,35 +125,35 @@ const Connecting = () => {
       >
         + Add account
       </Button>
-      {!loading && accounts.length===0 && <p>Add an account first in order to schedule posts</p>}
+      {!loading && accounts.length === 0 && <p>Add an account first in order to schedule posts</p>}
       {loading && <p className="text-white">Loading the accounts please be patient...</p>}
-      {!loading && accounts.length>0 &&( 
-      <div className="space-y-4">
-        {accounts.map((account) => (
-          <div
-            key={account.userInstaId}
-            className="flex items-center justify-between bg-white/10 p-4 rounded-lg"
-          >
-            <div className="flex items-center space-x-4">
-              <img
-                src={account.profile_picture_url}
-                className="w-12 h-12 rounded-full"
-                alt={account.username}
-              />
-              <div>
-                <p className="text-lg font-medium">{account.username}</p>
-              </div>
-            </div>
-            <Button
-              className="text-white bg-red-500/93 hover:bg-red-500 cursor-pointer"
-              onClick={() => handleDisconnect(account.userInstaId)}
+      {!loading && accounts.length > 0 && (
+        <div className="space-y-4">
+          {accounts.map((account) => (
+            <div
+              key={account.userInstaId}
+              className="flex items-center justify-between bg-white/10 p-4 rounded-lg"
             >
-              Disconnect
-            </Button>
-          </div>
-        ))}
-      </div>
-    )}
+              <div className="flex items-center space-x-4">
+                <img
+                  src={account.profile_picture_url}
+                  className="w-12 h-12 rounded-full"
+                  alt={account.username}
+                />
+                <div>
+                  <p className="text-lg font-medium">{account.username}</p>
+                </div>
+              </div>
+              <Button
+                className="text-white bg-red-500/93 hover:bg-red-500 cursor-pointer"
+                onClick={() => handleDisconnect(account.userInstaId)}
+              >
+                Disconnect
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
