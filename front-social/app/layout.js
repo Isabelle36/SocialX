@@ -29,14 +29,10 @@ export default function RootLayout({ children }) {
       <body
         className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-       <SidebarProvider>
-      <AppSidebar />
-     
-        {/* <SidebarTrigger /> */}
-        <main>
-        {children}
-        </main>
-     </SidebarProvider>
+        <SidebarProvider>
+          <AppSidebar />
+          <main className="flex-1">{children}</main> 
+        </SidebarProvider>
       </body>
     </html>
   );
