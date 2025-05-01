@@ -113,7 +113,7 @@ const Connecting = () => {
 
 
   return (
-    <div className="bg-zinc-900 text-white h-full p-6" style={{ minWidth:"385.8%" }}>
+    <div className="bg-zinc-900 text-white h-screen p-6" >
       <h1 className="text-4xl text-white/60 font-sans text-center mb-4">
         Manage Accounts
       </h1>
