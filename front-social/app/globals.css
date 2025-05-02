@@ -3,6 +3,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+.font-inter {
+  font-family: var(--font-inter), sans-serif;
+}
+
+.font-instrumentSerif{
+  font-family: 'var(--font-instrument-serif), serif';
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
