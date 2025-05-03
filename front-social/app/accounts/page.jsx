@@ -35,78 +35,74 @@ const Connecting = () => {
 
   useEffect(() => {
     const checkLogin = async () => {
-      const res = await fetch("/api/auth/checking-login", {
-        credentials: "include",
-      });
+      try {
+        const res = await fetch("/api/auth/checking-login", {
+          credentials: "include",
+        });
 
-      console.log("Checking login response:", res.status);
-      if (res.status === 401) {
-        console.log("User not authenticated");
-        return;
-      }
+        console.log("Checking login response:", res.status);
+        if (res.status === 401) {
+          console.log("User not authenticated");
+          return;
+        }
 
-      if (!res.ok) {
-        throw new Error("Internal server error");
-      }
+        if (!res.ok) {
+          throw new Error("Internal server error");
+        }
 
 
-      setLoading(true); // Set loading to true before fetching
-      fetch("/api/getting_saved_accounts", {
-        credentials: "include",
-        headers: {
-          "content-type": "application/json",
-        },
-      })
-        .then((res) => {
-          if (!res.ok) {
-            if (res.status === 401) {
-              // Handle token expiration
-              return fetch("/api/refresh_token", {
-                credentials: "include",
-                headers: {
-                  "content-type": "application/json",
-                },
-              })
-                .then((refreshRes) => {
-                  if (!refreshRes.ok) {
-                    throw new Error("Session expired. Please log in again.");
-                  }
-                  return refreshRes.json();
-                })
-                .then(() => {
-                  // Retry fetching accounts after refreshing the token
-                  return fetch("/api/getting_saved_accounts", {
-                    credentials: "include",
-                    headers: {
-                      "content-type": "application/json",
-                    },
-                  });
-                })
-                .then((retryRes) => {
-                  if (!retryRes.ok) {
-                    throw new Error("Failed to fetch accounts after refreshing token.");
-                  }
-                  return retryRes.json();
-                });
+        setLoading(true); // Set loading to true before fetching
+        const AccountRes = await fetch("/api/getting_saved_accounts", {
+          credentials: "include",
+          headers: {
+            "content-type": "application/json",
+          },
+        })
+
+        if (!AccountRes.ok) {
+          if (AccountRes.status === 401) {
+            // Handle token expiration
+            const refreshRes = await fetch("/api/refresh_token", {
+              credentials: "include",
+              headers: {
+                "content-type": "application/json",
+              },
+            })
+            if (!refreshRes.ok) {
+              throw new Error("Session expired. Please log in again.");
             }
+
+            // Retry fetching accounts after refreshing the token
+            const retryFetchAcc = await fetch("/api/getting_saved_accounts", {
+              credentials: "include",
+              headers: {
+                "content-type": "application/json",
+              },
+            });
+
+            if (!retryFetchAcc.ok) {
+              throw new Error("Failed to fetch accounts after refreshing token.");
+            }
+            const retryFetchedData = await retryFetchAcc.json();
+            setAccounts(retryFetchedData);
+          }
+          else {
+
             throw new Error("Failed to authenticate.");
           }
-          return res.json();
-        })
-        .then((data) => {
-          if (!data || data.error) {
-            setError(data?.error || "No accounts found.");
-          } else {
-            setAccounts(data);
-          }
-        })
-        .catch((err) => {
-          console.error("Error fetching accounts:", err);
-          setError(err.message || "Failed to load accounts. Please try again.");
-        })
-        .finally(() => {
-          setLoading(false); // Set loading to false after fetching
-        });
+        }
+        else {
+          const data = await AccountRes.json();
+          setAccounts(data);
+        }
+
+      } catch (err) {
+        console.error("Error fetching accounts:", err);
+        setError(err.message || "Failed to load accounts. Please try again.");
+      }
+      finally {
+        setLoading(false); // Set loading to false after fetching
+      };
     };
     checkLogin();
   }, []);
@@ -125,8 +121,8 @@ const Connecting = () => {
       >
         + Add account
       </Button>
-      {!loading && accounts.length === 0 && <p>Add an account first in order to schedule posts</p>}
       {loading && <p className="text-white">Loading the accounts please be patient...</p>}
+      {!loading && accounts.length === 0 && <p>Add an account first in order to schedule posts</p>}
       {!loading && accounts.length > 0 && (
         <div className="space-y-4">
           {accounts.map((account) => (
