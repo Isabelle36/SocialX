@@ -1,11 +1,23 @@
 'use client'
 
+import { Calendar } from '@/components/ui/calendar';
+import { format } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+ 
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import React, { useState } from 'react'
 
 const page = () => {
   const [showDropdown, setshowDropdown] = useState(false);
   const [Accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
+  const [date, setDate] = useState(null);
 
   const handleAccounts = async () => {
     setshowDropdown((prev) => !prev)
@@ -47,8 +59,9 @@ const page = () => {
     <div className='bg-black h-screen'>
       <h1 className='text-3xl text-center pt-[2%] font-inter font-stretch-semi-expanded text-white'>Schedule Your <span className='font-instrumentSerif italic text-4xl text-green-300'>Posts</span></h1>
       <p className='text-2xl pt-[5%] pl-[5%] text-white font-inter font-bold'>Create a Post</p>
-      <textarea placeholder='Type your caption here' className='bg-zinc-800 border border-white/30 text-white rounded-2xl mt-5 p-3 ml-[5%] w-[80%] h-[110px] focus:outline-none focus:ring-1 focus:ring-white/40 ' style={{ scrollbarWidth: "none" }}></textarea>
-      <div onClick={handleAccounts} className='flex items-center text-white/85 justify-between text-xs bg-zinc-800 w-[13%] h-[5%] ml-[5%] mt-[1.5%] p-2 rounded-xl cursor-pointer font-inter font-medium focus:ring-2 border border-white/20 ring-white/40'>
+      <textarea placeholder='Type your caption here' className='bg-zinc-900 border border-white/30 text-white rounded-2xl mt-5 p-3 ml-[5%] w-[80%] h-[110px] focus:outline-none focus:ring-1 focus:ring-white/40 ' style={{ scrollbarWidth: "none" }}></textarea>
+      <div className='flex items-center ml-[5%] mt-[1.5%]'>
+      <div onClick={handleAccounts} className='flex items-center hover:bg-zinc-900/60 text-white/80 justify-between text-sm bg-zinc-900/70 w-[14%]  mt-[1.5%] p-1.5 rounded-md cursor-pointer font-normal focus:ring-2 border border-white/20 ring-white/40'>
         {selectedAccount ? (
           <div className='flex space-x-3 cursor-pointer items-center'>
             <img className='rounded-full w-6 h-6' src={selectedAccount.profile_picture_url} alt='pfp' />
@@ -69,6 +82,30 @@ const page = () => {
             </span>
           </>
         )}
+      </div>
+      <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          className={cn(
+            "w-[180px] cursor-pointer justify-start focus:ring-2 border border-white/20 ring-white/40 text-left hover:bg-zinc-900/60 bg-zinc-900/70 text-white font-normal ml-[5%] mt-[2%]",
+            !date && "text-white/80"
+          )}
+        >
+          <CalendarIcon />
+          {date ? format(date, "PPP") : <span>Pick a date & time</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0 cursor-pointer bg-zinc-900 text-white rounded-lg shadow-lg" align="start">
+        <Calendar
+          mode="single"
+          className="cursor-pointer"
+          selected={date}
+          onSelect={setDate}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+
       </div>
       {showDropdown && (
         <div
@@ -95,7 +132,7 @@ const page = () => {
             ))}
         </div>
       )}
-      
+     
     </div>
   )
 }
