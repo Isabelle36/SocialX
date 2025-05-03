@@ -101,7 +101,7 @@ const Connecting = () => {
         setError(err.message || "Failed to load accounts. Please try again.");
       }
       finally {
-        setLoading(false); // Set loading to false after fetching
+        setLoading(false); 
       };
     };
     checkLogin();
