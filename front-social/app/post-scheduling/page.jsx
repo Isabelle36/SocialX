@@ -3,8 +3,7 @@
 import { Calendar } from '@/components/ui/calendar';
 import { format } from "date-fns";
 import { formatInTimeZone } from 'date-fns-tz';
-import { CalendarIcon } from "lucide-react";
-
+import { CalendarIcon, Clock4, Images } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +23,7 @@ const page = () => {
   const [timeZone, setTimeZone] = useState("UTC");
   const [loading, setLoading] = useState(false);
 
+  
   const timeZones = [
     "UTC",
     "America/New_York",
@@ -31,7 +31,7 @@ const page = () => {
     "Asia/Kolkata",
     "Asia/Tokyo",
     "Australia/Sydney",
-  ]; 
+  ];
 
   useEffect(() => {
     const fetchAccounts = async () => {
@@ -127,10 +127,7 @@ const page = () => {
     const [hours, minutes] = timeString.split(/[: ]/).map(Number);
     const isPM = time.period === "PM";
 
-    // Set the selected time on the date
     selectedDate.setHours(isPM ? hours + 12 : hours, minutes);
-
-    // Format the date in the selected time zone
     return formatInTimeZone(selectedDate, timeZone, "yyyy-MM-dd HH:mm:ssXXX");
   };
 
@@ -139,7 +136,7 @@ const page = () => {
       <h1 className='text-3xl text-center pt-[2%] font-inter font-stretch-semi-expanded text-white'>Schedule Your <span className='font-instrumentSerif italic text-4xl text-green-300'>Posts</span></h1>
       <p className='text-2xl pt-[5%] pl-[5%] text-white font-inter font-bold'>Create a Post</p>
       <textarea placeholder='Type your caption here' className='bg-zinc-900 border border-white/30 text-white rounded-2xl mt-5 p-3 ml-[5%] w-[80%] h-[110px] focus:outline-none focus:ring-1 focus:ring-white/40 ' style={{ scrollbarWidth: "none" }}></textarea>
-      <div className='flex items-center ml-[5%] mt-[1.5%] space-x-4'>
+      <div className='flex items-center ml-[11%] mt-[1.5%] space-x-4'>
         <div onClick={handleAccounts} className='flex items-center hover:bg-zinc-900/60 text-white/80 justify-between w-[180px] h-[40px] text-sm bg-zinc-900/70   mt-[1.5%] p-1.5 rounded-md cursor-pointer font-normal focus:ring-2 border border-white/20 ring-white/40'>
           {selectedAccount ? (
             <div className='flex space-x-3 cursor-pointer items-center'>
@@ -191,6 +188,7 @@ const page = () => {
                 !time && "text-white/80"
               )}
             >
+            <Clock4/>
               {hasSelectedTime
                 ? `${time.hour}:${String(time.minute).padStart(2, '0')} ${time.period}`
                 : <span className='font-normal text-white/80 '>Pick a time</span>}
@@ -242,9 +240,34 @@ const page = () => {
           </span>
         </div>
       </div>
+
+      <div className="flex flex-col mt-[2.5%] text-center ml-[26%] space-y-4">
+      
+      <div className="relative w-full  max-w-md">
+        <input
+          id="media-upload"
+          type="file"
+          accept="image/*,video/*"
+          multiple
+          className="absolute inset-0 opacity-0 cursor-pointer"
+        />
+        <div className="flex items-center justify-center w-full h-12 bg-zinc-900/70  border border-white/20 rounded-md cursor-pointer">
+          <div>
+          <Images className='text-white/75 mr-2'/>
+          </div>
+          <p className="text-white/80 text-sm">Upload image/videos</p>
+        </div>
+      </div>
+    </div>
+      
+      <div className='flex items-center mt-[6%] ml-[41%]'>
+        <button className='bg-green-500 p-1.5 w-[14%] text-sm font-medium cursor-pointer hover:bg-green-400 text-black rounded-sm text-center '>
+          Schedule Post
+        </button>
+      </div>
       {showDropdown && (
         <div
-          className='bg-zinc-900 flex flex-col text-white ml-[5%] rounded-lg mt-[0.5%] p-2 w-[13%] shadow-lg max-h-60 overflow-y-auto'
+          className='bg-zinc-900 ml-[11%] mt-[-7.8%] flex flex-col text-white rounded-lg p-2 w-[13.6%] shadow-lg max-h-60 overflow-y-auto'
           style={{ scrollbarWidth: 'thin', scrollbarColor: '#4B5563 #1F2937' }}
         >
           {Accounts.length === 0 && (
