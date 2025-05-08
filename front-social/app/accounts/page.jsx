@@ -61,7 +61,6 @@ const Connecting = () => {
 
         if (!AccountRes.ok) {
           if (AccountRes.status === 401) {
-            // Handle token expiration
             const refreshRes = await fetch("/api/refresh_token", {
               credentials: "include",
               headers: {
@@ -72,7 +71,6 @@ const Connecting = () => {
               throw new Error("Session expired. Please log in again.");
             }
 
-            // Retry fetching accounts after refreshing the token
             const retryFetchAcc = await fetch("/api/getting_saved_accounts", {
               credentials: "include",
               headers: {
@@ -98,7 +96,6 @@ const Connecting = () => {
 
       } catch (err) {
         console.error("Error fetching accounts:", err);
-        setError(err.message || "Failed to load accounts. Please try again.");
       }
       finally {
         setLoading(false); 

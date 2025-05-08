@@ -81,7 +81,7 @@ export async function GET(req) {
 
     if (accounts.length === 0) {
       console.error("No accounts found for the given Instagram ID.");
-      return new Response(JSON.stringify({ error: "No accounts found." }), { status: 404 });
+      return new Response(JSON.stringify([],{ error: "No accounts found." }), { status: 404 });
     }
 
     return new Response(JSON.stringify(accounts), { status: 200 });

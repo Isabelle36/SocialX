@@ -1,6 +1,5 @@
 import { Geist, Geist_Mono, Inter,Instrument_Serif } from "next/font/google";
 import "./globals.css";
-import "./globalIcons.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/ui/AppSidebar";
 

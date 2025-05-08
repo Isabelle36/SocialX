@@ -15,15 +15,21 @@ import React, { useEffect, useState } from 'react';
 
 const page = () => {
   const [showDropdown, setshowDropdown] = useState(false);
+  const [Caption, setCaption] = useState()
+  const [scheduledTime, setScheduledTime] = useState(null);
   const [Accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [date, setDate] = useState(null);
+  const [file, setFile] = useState();
   const [time, setTime] = useState({ hour: 12, minute: 0, period: 'AM' });
   const [hasSelectedTime, setHasSelectedTime] = useState(false);
   const [timeZone, setTimeZone] = useState("UTC");
   const [loading, setLoading] = useState(false);
 
-  
+  const handlingFileChange = (e) => {
+    setFile(e.target.files[0]);
+  }
+
   const timeZones = [
     "UTC",
     "America/New_York",
@@ -119,6 +125,9 @@ const page = () => {
     setTimeZone(event.target.value);
   };
 
+  const handleCaption = (e) => {
+    setCaption(e.target.value);
+  }
   const getZonedTime = () => {
     if (!date) return "Pick a date & time";
 
@@ -128,14 +137,84 @@ const page = () => {
     const isPM = time.period === "PM";
 
     selectedDate.setHours(isPM ? hours + 12 : hours, minutes);
-    return formatInTimeZone(selectedDate, timeZone, "yyyy-MM-dd HH:mm:ssXXX");
+    const formatTime = formatInTimeZone(selectedDate, timeZone, "yyyy-MM-dd HH:mm:ssXXX");
+    return formatTime;
   };
+
+  useEffect(() => {
+    if (date && time) {
+      const zonedTime = getZonedTime();
+      setScheduledTime(zonedTime);
+    }
+  }, [date, time, timeZone]);
+
+  const handleScheduleSubmit = async () => {
+  if (!file || !Caption || !scheduledTime || !selectedAccount) {
+    alert("Please fill in all the required fields.");
+    return;
+  }
+
+  const currentTime = new Date();
+  const selectedTime = new Date(scheduledTime);
+
+  if (selectedTime <= currentTime) {
+    alert("The scheduled time must be in the future. Please select a valid time.");
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const uploadResponse = await fetch("/api/file-upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!uploadResponse.ok) {
+      throw new Error("Failed to upload file");
+    }
+
+    const { url: imageUrl } = await uploadResponse.json();
+
+    const payload = {
+      imageUrl,
+      caption: Caption,
+      scheduledTime,
+      igUserId: selectedAccount.userInstaId,
+      accessToken: selectedAccount.accessToken,
+    };
+
+    const response = await fetch("/api/scheduling-post", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+    if (response.ok) {
+      alert("Post scheduled successfully!");
+    } else {
+      alert(`Error: ${result.error}`);
+    }
+    setCaption("")
+    setFile(null);
+    setDate(null);
+    setTime({ hour: 12, minute: 0, period: 'AM' });
+    setHasSelectedTime(false);
+  } catch (error) {
+    console.error("Error scheduling post:", error);
+    alert("An error occurred while scheduling the post.");
+  }
+};
 
   return (
     <div className='bg-black h-screen'>
       <h1 className='text-3xl text-center pt-[2%] font-inter font-stretch-semi-expanded text-white'>Schedule Your <span className='font-instrumentSerif italic text-4xl text-green-300'>Posts</span></h1>
       <p className='text-2xl pt-[5%] pl-[5%] text-white font-inter font-bold'>Create a Post</p>
-      <textarea placeholder='Type your caption here' className='bg-zinc-900 border border-white/30 text-white rounded-2xl mt-5 p-3 ml-[5%] w-[80%] h-[110px] focus:outline-none focus:ring-1 focus:ring-white/40 ' style={{ scrollbarWidth: "none" }}></textarea>
+      <textarea placeholder='Type your caption here' onChange={handleCaption} className='bg-zinc-900 border border-white/30 text-white rounded-2xl mt-5 p-3 ml-[5%] w-[80%] h-[110px] focus:outline-none focus:ring-1 focus:ring-white/40 ' style={{ scrollbarWidth: "none" }}></textarea>
       <div className='flex items-center ml-[11%] mt-[1.5%] space-x-4'>
         <div onClick={handleAccounts} className='flex items-center hover:bg-zinc-900/60 text-white/80 justify-between w-[180px] h-[40px] text-sm bg-zinc-900/70   mt-[1.5%] p-1.5 rounded-md cursor-pointer font-normal focus:ring-2 border border-white/20 ring-white/40'>
           {selectedAccount ? (
@@ -188,7 +267,7 @@ const page = () => {
                 !time && "text-white/80"
               )}
             >
-            <Clock4/>
+              <Clock4 />
               {hasSelectedTime
                 ? `${time.hour}:${String(time.minute).padStart(2, '0')} ${time.period}`
                 : <span className='font-normal text-white/80 '>Pick a time</span>}
@@ -241,27 +320,32 @@ const page = () => {
         </div>
       </div>
 
+
       <div className="flex flex-col mt-[2.5%] text-center ml-[26%] space-y-4">
-      
-      <div className="relative w-full  max-w-md">
-        <input
-          id="media-upload"
-          type="file"
-          accept="image/*,video/*"
-          multiple
-          className="absolute inset-0 opacity-0 cursor-pointer"
-        />
-        <div className="flex items-center justify-center w-full h-12 bg-zinc-900/70  border border-white/20 rounded-md cursor-pointer">
-          <div>
-          <Images className='text-white/75 mr-2'/>
+
+        <div className="relative w-full  max-w-md">
+          <form>
+            <input
+              id="media-upload"
+              type="file"
+              accept="image/*,video/*"
+              onChange={handlingFileChange}
+              multiple
+              className="absolute inset-0 opacity-0 cursor-pointer"
+            />
+          </form>
+          <div className="flex items-center justify-center w-full h-12 bg-zinc-900/70  border border-white/20 rounded-md cursor-pointer">
+            <div>
+              <Images className='text-white/75 mr-2' />
+            </div>
+            <p className="text-white/80 text-sm">Upload image/videos</p>
           </div>
-          <p className="text-white/80 text-sm">Upload image/videos</p>
         </div>
       </div>
-    </div>
-      
+
+
       <div className='flex items-center mt-[6%] ml-[41%]'>
-        <button className='bg-green-500 p-1.5 w-[14%] text-sm font-medium cursor-pointer hover:bg-green-400 text-black rounded-sm text-center '>
+        <button onClick={handleScheduleSubmit} className='bg-green-500 p-1.5 w-[14%] text-sm font-medium cursor-pointer hover:bg-green-400 text-black rounded-sm text-center '>
           Schedule Post
         </button>
       </div>
