@@ -51,7 +51,7 @@ const Connecting = () => {
         }
 
 
-        setLoading(true); // Set loading to true before fetching
+        setLoading(true); 
         const AccountRes = await fetch("/api/getting_saved_accounts", {
           credentials: "include",
           headers: {
@@ -61,38 +61,16 @@ const Connecting = () => {
 
         if (!AccountRes.ok) {
           if (AccountRes.status === 401) {
-            const refreshRes = await fetch("/api/refresh_token", {
-              credentials: "include",
-              headers: {
-                "content-type": "application/json",
-              },
-            })
-            if (!refreshRes.ok) {
-              throw new Error("Session expired. Please log in again.");
-            }
-
-            const retryFetchAcc = await fetch("/api/getting_saved_accounts", {
-              credentials: "include",
-              headers: {
-                "content-type": "application/json",
-              },
-            });
-
-            if (!retryFetchAcc.ok) {
-              throw new Error("Failed to fetch accounts after refreshing token.");
-            }
-            const retryFetchedData = await retryFetchAcc.json();
-            setAccounts(retryFetchedData);
-          }
-          else {
-
-            throw new Error("Failed to authenticate.");
+            console.error("Session expired even after checking login. Please log in again.");
+            return; 
+          } else {
+            throw new Error("Failed to fetch accounts.");
           }
         }
-        else {
+
           const data = await AccountRes.json();
           setAccounts(data);
-        }
+        
 
       } catch (err) {
         console.error("Error fetching accounts:", err);
