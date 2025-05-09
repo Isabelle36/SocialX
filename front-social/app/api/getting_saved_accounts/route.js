@@ -27,7 +27,6 @@ export async function GET(req) {
 
     let decoded;
 
-    // Verify the access token
     if (token) {
       try {
         decoded = jwt.verify(token, tokenSecret);
