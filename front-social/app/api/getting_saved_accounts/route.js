@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import clientPromise from "@/lib/mongodb";
+import { generateAccessToken } from "@/lib/generateToken";
 
 export async function GET(req) {
   const cookies = req.headers.get("cookie");
@@ -40,21 +41,14 @@ export async function GET(req) {
       }
     }
 
-    // If the access token is expired or missing, use the refresh token
     if (!decoded && refreshToken) {
       try {
         const refreshDecoded = jwt.verify(refreshToken, refreshTokenSecret);
-        console.log("Decoded Refresh Token:", refreshDecoded);
+        const {instagramId}=refreshDecoded;
+        const newAccessToken = generateAccessToken({instagramId});
+        decoded=jwt.verify(token,newAccessToken);
 
-        // Generate a new access token
-        const newAccessToken = jwt.sign(
-          { instagramId: refreshDecoded.instagramId },
-          tokenSecret,
-          { expiresIn: "1h" }
-        );
-
-        // Set the new access token in the cookies
-        return new Response(null, {
+        return new Response(JSON.stringify({token:newAccessToken}), {
           status: 200,
           headers: {
             "Set-Cookie": `token=${newAccessToken}; HttpOnly; Path=/; Max-Age=3600`,
