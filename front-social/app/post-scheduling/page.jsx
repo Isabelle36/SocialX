@@ -20,14 +20,16 @@ const page = () => {
   const [Accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [date, setDate] = useState(null);
-  const [file, setFile] = useState();
+  const [file, setFile] = useState([]);
   const [time, setTime] = useState({ hour: 12, minute: 0, period: 'AM' });
   const [hasSelectedTime, setHasSelectedTime] = useState(false);
   const [timeZone, setTimeZone] = useState("UTC");
   const [loading, setLoading] = useState(false);
 
   const handlingFileChange = (e) => {
-    setFile(e.target.files[0]);
+    const selectedFiles = Array.from(e.target.files);
+    setFile((prevFiles) => [...prevFiles, ...selectedFiles]);
+    console.log(selectedFiles);
   }
 
   const timeZones = [
@@ -149,66 +151,70 @@ const page = () => {
   }, [date, time, timeZone]);
 
   const handleScheduleSubmit = async () => {
-  if (!file || !Caption || !scheduledTime || !selectedAccount) {
-    alert("Please fill in all the required fields.");
-    return;
-  }
-
-  const currentTime = new Date();
-  const selectedTime = new Date(scheduledTime);
-
-  if (selectedTime <= currentTime) {
-    alert("The scheduled time must be in the future. Please select a valid time.");
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-
-    const uploadResponse = await fetch("/api/file-upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (!uploadResponse.ok) {
-      throw new Error("Failed to upload file");
+    if (!file || !Caption || !scheduledTime || !selectedAccount) {
+      alert("Please fill in all the required fields.");
+      return;
     }
 
-    const { url: imageUrl } = await uploadResponse.json();
+    const currentTime = new Date();
+    const selectedTime = new Date(scheduledTime);
 
-    const payload = {
-      imageUrl,
-      caption: Caption,
-      scheduledTime,
-      igUserId: selectedAccount.userInstaId,
-      accessToken: selectedAccount.accessToken,
-    };
+    if (selectedTime <= currentTime) {
+      alert("The scheduled time must be in the future. Please select a valid time.");
+      return;
+    }
 
-    const response = await fetch("/api/scheduling-post", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    try {
+      const formData = new FormData();
+      file.forEach((e) => {
+        formData.append("file", e);
+      })
 
-    const result = await response.json();
-    if (response.ok) {
-      alert("Post scheduled successfully!");
-    } else {
-      alert(`Error: ${result.error}`);
+      const uploadResponse = await fetch("/api/file-upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("Failed to upload file");
+      }
+
+      const { urls: imageUrls } = await uploadResponse.json();
+
+      const payload = {
+        imageUrls,
+        caption: Caption,
+        scheduledTime,
+        igUserId: selectedAccount.userInstaId,
+        accessToken: selectedAccount.accessToken,
+      };
+
+      console.log("Payload:", payload);
+
+      const response = await fetch("/api/scheduling-post", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+      if (response.ok) {
+        alert("Post scheduled successfully!");
+      } else {
+        alert(`Error: ${result.error}`);
+      }
+    } catch (error) {
+      console.error("Error scheduling post:", error);
+      alert("An error occurred while scheduling the post.");
     }
     setCaption("")
     setFile(null);
     setDate(null);
     setTime({ hour: 12, minute: 0, period: 'AM' });
     setHasSelectedTime(false);
-  } catch (error) {
-    console.error("Error scheduling post:", error);
-    alert("An error occurred while scheduling the post.");
-  }
-};
+  };
 
   return (
     <div className='bg-black h-screen'>
