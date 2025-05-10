@@ -45,7 +45,7 @@ export async function GET(req) {
         const refreshDecoded = jwt.verify(refreshToken, refreshTokenSecret);
         const {instagramId}=refreshDecoded;
         const newAccessToken = generateAccessToken({instagramId});
-        decoded=jwt.verify(token,newAccessToken);
+        decoded=jwt.verify(newAccessToken,tokenSecret);
 
         return new Response(JSON.stringify({token:newAccessToken}), {
           status: 200,
