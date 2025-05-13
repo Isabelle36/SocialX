@@ -210,7 +210,7 @@ const page = () => {
       alert("An error occurred while scheduling the post.");
     }
     setCaption("")
-    setFile(null);
+    setFile([]);
     setDate(null);
     setTime({ hour: 12, minute: 0, period: 'AM' });
     setHasSelectedTime(false);
