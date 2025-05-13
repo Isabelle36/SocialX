@@ -11,11 +11,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 
 const page = () => {
   const [showDropdown, setshowDropdown] = useState(false);
-  const [Caption, setCaption] = useState()
+  const [Caption, setCaption] = useState("")
   const [scheduledTime, setScheduledTime] = useState(null);
   const [Accounts, setAccounts] = useState([]);
   const [selectedAccount, setSelectedAccount] = useState(null);
@@ -25,9 +25,57 @@ const page = () => {
   const [hasSelectedTime, setHasSelectedTime] = useState(false);
   const [timeZone, setTimeZone] = useState("UTC");
   const [loading, setLoading] = useState(false);
+   const dropdownRef = useRef(null);
+
+   useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setshowDropdown(false); 
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
 
   const handlingFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
+    const videos = selectedFiles.filter(file =>
+      file.type.startsWith("video/")
+    );
+    const images = selectedFiles.filter(file =>
+      file.type.startsWith("image/")
+    );
+
+    if (videos.length > 1) {
+      alert("You can only upload one video.");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null;
+      }
+      return;
+    }
+
+    if (images.length > 10) {
+      alert("You can only upload up to 10 images.");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null;
+      }
+      return;
+    }
+
+    if (videos.length === 1 && images.length > 0) {
+      alert("Please upload either one video or up to 10 images — not both.");
+      if (fileInputRef.current) {
+        fileInputRef.current.value = null;
+      }
+      return;
+    }
     setFile((prevFiles) => [...prevFiles, ...selectedFiles]);
     console.log(selectedFiles);
   }
@@ -150,6 +198,8 @@ const page = () => {
     }
   }, [date, time, timeZone]);
 
+  const fileInputRef = useRef(null)
+
   const handleScheduleSubmit = async () => {
     if (!file || !Caption || !scheduledTime || !selectedAccount) {
       alert("Please fill in all the required fields.");
@@ -209,18 +259,26 @@ const page = () => {
       console.error("Error scheduling post:", error);
       alert("An error occurred while scheduling the post.");
     }
-    setCaption("")
+    setCaption("");
     setFile([]);
     setDate(null);
+    setScheduledTime(null);
+    setTimeZone("UTC");
     setTime({ hour: 12, minute: 0, period: 'AM' });
     setHasSelectedTime(false);
+    setshowDropdown(false);
+    setSelectedAccount(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = null;
+    }
+
   };
 
   return (
     <div className='bg-black h-screen'>
       <h1 className='text-3xl text-center pt-[2%] font-inter font-stretch-semi-expanded text-white'>Schedule Your <span className='font-instrumentSerif italic text-4xl text-green-300'>Posts</span></h1>
       <p className='text-2xl pt-[5%] pl-[5%] text-white font-inter font-bold'>Create a Post</p>
-      <textarea placeholder='Type your caption here' onChange={handleCaption} className='bg-zinc-900 border border-white/30 text-white rounded-2xl mt-5 p-3 ml-[5%] w-[80%] h-[110px] focus:outline-none focus:ring-1 focus:ring-white/40 ' style={{ scrollbarWidth: "none" }}></textarea>
+      <textarea placeholder='Type your caption here' value={Caption} onChange={handleCaption} className='bg-zinc-900 border border-white/30 text-white rounded-2xl mt-5 p-3 ml-[5%] w-[80%] h-[110px] focus:outline-none focus:ring-1 focus:ring-white/40 ' style={{ scrollbarWidth: "none" }}></textarea>
       <div className='flex items-center ml-[11%] mt-[1.5%] space-x-4'>
         <div onClick={handleAccounts} className='flex items-center hover:bg-zinc-900/60 text-white/80 justify-between w-[180px] h-[40px] text-sm bg-zinc-900/70   mt-[1.5%] p-1.5 rounded-md cursor-pointer font-normal focus:ring-2 border border-white/20 ring-white/40'>
           {selectedAccount ? (
@@ -334,6 +392,7 @@ const page = () => {
             <input
               id="media-upload"
               type="file"
+              ref={fileInputRef}
               accept="image/*,video/*"
               onChange={handlingFileChange}
               multiple
@@ -357,8 +416,8 @@ const page = () => {
       </div>
       {showDropdown && (
         <div
-          className='bg-zinc-900 ml-[11%] mt-[-7.8%] flex flex-col text-white rounded-lg p-2 w-[13.6%] shadow-lg max-h-60 overflow-y-auto'
-          style={{ scrollbarWidth: 'thin', scrollbarColor: '#4B5563 #1F2937' }}
+          className='bg-zinc-900 ml-[11%] mt-[-13.8%] flex flex-col text-white rounded-lg p-2 w-[13.6%] shadow-lg max-h-60 overflow-y-auto'
+          ref={dropdownRef} style={{ scrollbarWidth: 'thin', scrollbarColor: '#4B5563 #1F2937' }}
         >
           {Accounts.length === 0 && (
             <p className='text-gray-400 text-sm text-center'>No accounts available</p>
