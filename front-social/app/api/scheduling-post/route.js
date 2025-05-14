@@ -34,7 +34,7 @@ export async function POST(req) {
       agendaJob = "publishSingleImage";
     } else if (imageUrls.length > 1) {
       mediaType = "carousel";
-      mediaUrlKey = "carouselsContent_url";
+      mediaUrlKey = "image_url";
       agendaJob = "publishCarousel";
     } else {
       return new Response(
@@ -129,7 +129,7 @@ agenda.define("publishSingleImage", async (job) => {
     );
 
     const creationId = await creatingCreationId.json();
-
+    console.log(creatingCreationId)
     if (creationId.error) {
       console.error("Error creating media", creationId.error.message);
       await db
@@ -140,6 +140,8 @@ agenda.define("publishSingleImage", async (job) => {
         );
       return;
     }
+
+    console.log("Now trying to publish")
 
     const publishThePost = await fetch(
       `https://graph.facebook.com/v22.0/${post.igUserId}/media_publish`,
@@ -154,16 +156,23 @@ agenda.define("publishSingleImage", async (job) => {
     );
 
     const publishResponse = await publishThePost.json();
-
+    console.log(publishResponse)
     if (publishResponse.error) {
-      console.error("Error publishing post", publishResponse.error.message);
-      await db
-        .collection("scheduledPosts")
-        .updateOne(
-          { _id: postId },
-          { $set: { status: "failed", error: publishResponse.error.message } }
+       const isRateLimitError = publishResponse.error.message.includes("Application request limit reached");
+       if (isRateLimitError) {
+        console.warn("Rate limit warning:", publishResponse.error.message);
+        await db.collection("scheduledPosts").updateOne(
+            { _id: postId },
+            { $set: { status: "Published with Warnings", warning: publishResponse.error.message } }
         );
-      return;
+    } else {
+        console.error("Error creating media", publishResponse.error.message);
+        await db.collection("scheduledPosts").updateOne(
+            { _id: postId },
+            { $set: { status: "failed", error: publishResponse.error.message } }
+        );
+        return;
+    }
     }
 
     await db
@@ -291,14 +300,21 @@ agenda.define("publishSingleVideo", async (job) => {
     const publishResponse = await publishThePost.json();
 
     if (publishResponse.error) {
-      console.error("Error publishing post:", publishResponse.error.message);
-      await db
-        .collection("scheduledPosts")
-        .updateOne(
-          { _id: postId },
-          { $set: { status: "failed", error: publishResponse.error.message } }
+       const isRateLimitError = publishResponse.error.message.includes("Application request limit reached");
+       if (isRateLimitError) {
+        console.warn("Rate limit warning:", publishResponse.error.message);
+        await db.collection("scheduledPosts").updateOne(
+            { _id: postId },
+            { $set: { status: "Published with Warnings", warning: publishResponse.error.message } }
         );
-      return;
+    } else {
+        console.error("Error creating media", publishResponse.error.message);
+        await db.collection("scheduledPosts").updateOne(
+            { _id: postId },
+            { $set: { status: "failed", error: publishResponse.error.message } }
+        );
+        return;
+    }
     }
 
     await db
@@ -534,14 +550,21 @@ agenda.define("publishCarousel", async (job) => {
     const publishResponse = await publishThePost.json();
 
     if (publishResponse.error) {
-      console.error("Error publishing post:", publishResponse.error.message);
-      await db
-        .collection("scheduledPosts")
-        .updateOne(
-          { _id: postId },
-          { $set: { status: "failed", error: publishResponse.error.message } }
+       const isRateLimitError = publishResponse.error.message.includes("Application request limit reached");
+       if (isRateLimitError) {
+        console.warn("Rate limit warning:", publishResponse.error.message);
+        await db.collection("scheduledPosts").updateOne(
+            { _id: postId },
+            { $set: { status: "Published with Warnings", warning: publishResponse.error.message } }
         );
-      return;
+    } else {
+        console.error("Error creating media", publishResponse.error.message);
+        await db.collection("scheduledPosts").updateOne(
+            { _id: postId },
+            { $set: { status: "failed", error: publishResponse.error.message } }
+        );
+        return;
+    }
     }
 
     await db
@@ -551,7 +574,6 @@ agenda.define("publishCarousel", async (job) => {
         { $set: { status: "Published", PublishedAt: new Date() } }
       );
 
-    console.log("Carousel post published successfully:", publishResponse.id);
   } catch (err) {
     console.error("Error publishing Carousel post:", err.message);
     await db
