@@ -77,7 +77,6 @@ const page = () => {
       return;
     }
     setFile((prevFiles) => [...prevFiles, ...selectedFiles]);
-    console.log(selectedFiles);
   }
 
   const timeZones = [
@@ -239,7 +238,7 @@ const page = () => {
         accessToken: selectedAccount.accessToken,
       };
 
-      console.log("Payload:", payload);
+     
 
       const response = await fetch("/api/scheduling-post", {
         method: "POST",

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
-const tabs = ["All", "Published", "Scheduled", "Failed"];
+const tabs = ["All", "Published", "Pending", "Failed"];
 
 const ScheduledPosts = () => {
   const [activeTab, setActiveTab] = useState("All");
@@ -14,32 +14,55 @@ const ScheduledPosts = () => {
 
   useEffect(() => {
     const fetchPosts = async () => {
-      setLoading(true);
       try {
-        const response = await fetch("/api/fetching-posts-database");
-        if (!response.ok) {
-          throw new Error("Failed to fetch posts");
+        const res = await fetch("/api/auth/checking-login", {
+          credentials: "include",
+        });
+
+        console.log("Checking login response:", res.status);
+        if (res.status === 401) {
+          console.log("User not authenticated");
+          return;
         }
-        const data = await response.json();
-        setPosts(data);
-        setFilteredPosts(data);
-      } catch (error) {
-        console.error("Error fetching posts:", error);
-      } finally {
-        setLoading(false);
+
+        if (!res.ok) {
+          throw new Error("Internal server error");
+        }
+        setLoading(true);
+        try {
+          const response = await fetch("/api/fetching-posts-database");
+          if (!response.ok) {
+            throw new Error("Failed to fetch posts");
+          }
+          const data = await response.json();
+          setPosts(data);
+          setFilteredPosts(data);
+        } catch (error) {
+          console.error("Error fetching posts:", error);
+        } finally {
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Error fetching accounts:", err);
       }
+      finally {
+        setLoading(false);
+      };
     };
 
     fetchPosts();
   }, []);
 
   useEffect(() => {
-    if (activeTab === "All") {
+    if (activeTab.toLowerCase() === "all") {
       setFilteredPosts(posts);
     } else {
-      setFilteredPosts(posts.filter((post) => post.status.toLowerCase() === activeTab.toLowerCase()));
+      setFilteredPosts(
+        posts.filter((post) => post.status.toLowerCase() === activeTab.toLowerCase())
+      );
     }
   }, [activeTab, posts]);
+
 
   const getStatusStyles = (status) => {
     switch (status) {
@@ -91,13 +114,11 @@ const ScheduledPosts = () => {
                 <p className="text-sm text-gray-400">
                   Scheduled Time: {new Date(post.scheduledTime).toLocaleString()}
                 </p>
-                <div className="flex overflow-x-auto space-x-4">
-                  {post.video && (
-                    <video
-                      src={post.videos}
-                      controls
-                      className="w-40 h-40 object-cover rounded-md"
-                    />
+                <div className="flex overflow-x-auto rounded-lg space-x-4">
+                  {post.videos && (
+                    <video className="w-40 h-40 rounded-lg object-cover" autoPlay muted loop src={post.videos} type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
                   )}
                   {Array.isArray(post.images) ? (
                     post.images.map((image, index) => (
@@ -148,12 +169,10 @@ const ScheduledPosts = () => {
                   Scheduled Time: {new Date(post.scheduledTime).toLocaleString()}
                 </p>
                 <div className="flex overflow-x-auto space-x-4">
-                  {post.video && (
-                    <video
-                      src={post.videos}
-                      controls
-                      className="w-40 h-40 object-cover rounded-md"
-                    />
+                  {post.videos && (
+                    <video className="w-40 h-40 rounded-lg object-cover" autoPlay muted loop src={post.videos} type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
                   )}
                   {Array.isArray(post.images) ? (
                     post.images.map((image, index) => (
@@ -204,12 +223,10 @@ const ScheduledPosts = () => {
                   Scheduled Time: {new Date(post.scheduledTime).toLocaleString()}
                 </p>
                 <div className="flex overflow-x-auto space-x-4">
-                  {post.video && (
-                    <video
-                      src={post.videos}
-                      controls
-                      className="w-40 h-40 object-cover rounded-md"
-                    />
+                  {post.videos && (
+                    <video className="w-40 h-40 rounded-lg object-cover" autoPlay muted loop src={post.videos} type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
                   )}
                   {Array.isArray(post.images) ? (
                     post.images.map((image, index) => (
@@ -245,7 +262,7 @@ const ScheduledPosts = () => {
           )}
         </div>
       }
-      {activeTab === "Scheduled" &&
+      {activeTab === "Pending" &&
         <div className="text-white ml-[2%] grid grid-cols-2 space-y-3 gap-4 mt-10">
           {loading ? (
             <p>Loading posts...</p>
@@ -260,12 +277,10 @@ const ScheduledPosts = () => {
                   Scheduled Time: {new Date(post.scheduledTime).toLocaleString()}
                 </p>
                 <div className="flex overflow-x-auto space-x-4">
-                  {post.video && (
-                    <video
-                      src={post.videos}
-                      controls
-                      className="w-40 h-40 object-cover rounded-md"
-                    />
+                  {post.videos && (
+                    <video className="w-40 h-40 rounded-lg object-cover" autoPlay muted loop src={post.videos} type="video/mp4">
+                      Your browser does not support the video tag.
+                    </video>
                   )}
                   {Array.isArray(post.images) ? (
                     post.images.map((image, index) => (
