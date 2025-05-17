@@ -30,7 +30,7 @@ export async function GET(req) {
     if (token) {
       try {
         decoded = jwt.verify(token, tokenSecret);
-        console.log("Decoded Token:", decoded);
+        // console.log("Decoded Token:", decoded);
       } catch (error) {
         if (error.name === "TokenExpiredError") {
           console.warn("Access token expired. Attempting to refresh...");
