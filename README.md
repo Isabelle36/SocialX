@@ -28,7 +28,8 @@ Follow these steps to set up and run the project:
      ```
    - Approve the app from your Instagram account.
    - Also add these products to your App
-      ![product facebook console image](image.png)
+     ![image](https://github.com/user-attachments/assets/3e1a01d4-a11e-46de-bd7e-de8deff9499d)
+
   
 4. **Granting API Permissions**  
    - In the Graph API Explorer:
