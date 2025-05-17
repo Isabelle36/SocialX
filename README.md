@@ -127,4 +127,4 @@ To learn more about the technologies used:
 
 - [Next.js Documentation](https://nextjs.org/docs) - Learn about features and API.
 - [Facebook Graph API](https://developers.facebook.com/docs/graph-api/) - Get started with Graph API.
-- [The post scheduling docs] (https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media)
+- [The post scheduling docs](https://developers.facebook.com/docs/instagram-platform/instagram-graph-api/reference/ig-user/media) - Learn more about how the schedling works
