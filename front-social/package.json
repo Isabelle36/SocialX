@@ -44,8 +44,10 @@
     "@types/json5": "^0.0.30",
     "@types/node": "^22.15.15",
     "@types/whatwg-url": "^13.0.0",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
-    "tailwindcss": "^4"
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.7"
   }
 }
